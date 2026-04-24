@@ -9,7 +9,7 @@ resources:
 images:
   - name: registry.144.91.77.245.sslip.io/deepseek-v4-paper
     newName: registry.144.91.77.245.sslip.io/deepseek-v4-paper
-    newTag: bootstrap
+    newTag: ba7e4a0613ae4c2333810aca6a155d4db0ab8ac3
 
 labels:
   - includeSelectors: true
