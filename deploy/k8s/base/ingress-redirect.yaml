@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: deepseek-v4-paper
     app.kubernetes.io/part-of: deepseek-v4-paper
   annotations:
-    nginx.ingress.kubernetes.io/permanent-redirect: https://deepseekv4paper.lol$request_uri
+    nginx.ingress.kubernetes.io/permanent-redirect: https://deepseekv4paper.lol
     nginx.ingress.kubernetes.io/permanent-redirect-code: "308"
 spec:
   ingressClassName: nginx
