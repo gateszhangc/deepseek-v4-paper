@@ -1,24 +1,27 @@
 const { test, expect } = require("@playwright/test");
 
-test.describe("Artemis II wallpaper site", () => {
-  test("desktop homepage renders key content and filters wallpapers", async ({ page }) => {
+test.describe("DeepSeek V4 Paper site", () => {
+  test("desktop homepage renders key SEO content and official resources", async ({ page }) => {
     await page.goto("/");
 
-    await expect(page).toHaveTitle(/Artemis II Wallpaper/i);
-    await expect(page.locator("h1")).toHaveText("Artemis II Wallpaper");
-    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /publicly released NASA mission imagery/i);
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://artemis-2-wallpaper.lol/");
+    await expect(page).toHaveTitle(/DeepSeek V4 Paper/i);
+    await expect(page.locator("h1")).toHaveText("DeepSeek V4 Paper");
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /DeepSeek V4 paper guide/i);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://deepseekv4paper.lol/");
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", /PDF, Benchmarks, Official Links/i);
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /index,follow/i);
+    await expect(page.getByText("This site is not affiliated with DeepSeek.")).toBeVisible();
+    await expect(page.locator("#highlights .info-card")).toHaveCount(4);
+    await expect(page.locator("#benchmarks .benchmark-card")).toHaveCount(4);
+    await expect(page.locator("#resources .resource-card")).toHaveCount(6);
+    await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(4);
+    await expect(page.locator("[data-verified-date]")).toContainText("April 24, 2026");
 
-    const wallpaperCards = page.locator(".wallpaper-card");
-    await expect(wallpaperCards).toHaveCount(10);
-    await expect(page.getByText("Not an official NASA website.")).toBeVisible();
+    const reportLink = page.getByRole("link", { name: "Open Technical Report" });
+    await expect(reportLink).toHaveAttribute("href", /DeepSeek_V4\.pdf/);
 
-    await page.getByRole("button", { name: "Posters" }).click();
-    await expect(page.locator(".wallpaper-card:not([hidden])")).toHaveCount(2);
-    await expect(page.locator("[data-results-count]")).toHaveText("Showing 2 wallpapers");
-
-    await page.getByRole("button", { name: "All" }).click();
-    await expect(page.locator(".wallpaper-card:not([hidden])")).toHaveCount(10);
+    await page.getByRole("link", { name: "Browse Official Links" }).click();
+    await expect(page.locator("#resources")).toBeInViewport();
 
     for (const image of await page.locator("img").all()) {
       await image.scrollIntoViewIfNeeded();
@@ -30,7 +33,7 @@ test.describe("Artemis II wallpaper site", () => {
     expect(imagesLoaded).toBe(true);
   });
 
-  test("mobile layout stays within viewport and keeps gallery accessible", async ({ browser }) => {
+  test("mobile layout stays within viewport and keeps sections navigable", async ({ browser }) => {
     const context = await browser.newContext({
       viewport: { width: 390, height: 844 },
       isMobile: true
@@ -40,16 +43,15 @@ test.describe("Artemis II wallpaper site", () => {
     await page.goto("/");
 
     await expect(page.locator("h1")).toBeVisible();
-    await expect(page.getByRole("link", { name: "Explore the Collection" })).toBeVisible();
-    await page.getByRole("link", { name: "Explore the Collection" }).click();
-    await expect(page.locator("#gallery")).toBeInViewport();
+    await page.getByRole("link", { name: "Resources" }).click();
+    await expect(page.locator("#resources")).toBeInViewport();
+    await page.getByRole("link", { name: "FAQ" }).click();
+    await expect(page.locator("#faq")).toBeInViewport();
 
-    const overflow = await page.evaluate(() => {
-      return document.documentElement.scrollWidth - window.innerWidth;
-    });
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(1);
 
-    await expect(page.locator(".wallpaper-card")).toHaveCount(10);
+    await expect(page.locator(".resource-card")).toHaveCount(6);
     await context.close();
   });
 });

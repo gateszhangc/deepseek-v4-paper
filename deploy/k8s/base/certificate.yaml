@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: deepseek-v4-paper-live-tls
+  labels:
+    app.kubernetes.io/name: deepseek-v4-paper
+    app.kubernetes.io/part-of: deepseek-v4-paper
+  annotations:
+    cert-manager.io/issue-temporary-certificate: "true"
+spec:
+  secretName: deepseek-v4-paper-live-tls
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-prod
+  dnsNames:
+    - deepseekv4paper.lol
+    - www.deepseekv4paper.lol

@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: deepseek-v4-paper
+
+resources:
+  - ../../base
+
+images:
+  - name: registry.144.91.77.245.sslip.io/deepseek-v4-paper
+    newName: registry.144.91.77.245.sslip.io/deepseek-v4-paper
+    newTag: bootstrap
+
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/managed-by: argocd

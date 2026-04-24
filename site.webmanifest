@@ -1,11 +1,11 @@
 {
-  "name": "Artemis II Wallpaper",
-  "short_name": "Artemis II",
-  "description": "Independent editorial collection of Artemis II wallpapers using publicly released NASA imagery with source credit.",
+  "name": "DeepSeek V4 Paper",
+  "short_name": "DSV4 Paper",
+  "description": "DeepSeek V4 paper guide with the official PDF, benchmark snapshot, and model links.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#050912",
-  "theme_color": "#050912",
+  "background_color": "#061018",
+  "theme_color": "#061018",
   "icons": [
     {
       "src": "/assets/brand/favicon.png",

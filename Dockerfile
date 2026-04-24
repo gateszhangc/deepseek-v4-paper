@@ -15,6 +15,10 @@ COPY site.webmanifest ./site.webmanifest
 COPY sitemap.xml ./sitemap.xml
 COPY styles.css ./styles.css
 
+RUN addgroup -S app && adduser -S app -G app
+
+USER app
+
 EXPOSE 3000
 
 CMD ["node", "server.js"]

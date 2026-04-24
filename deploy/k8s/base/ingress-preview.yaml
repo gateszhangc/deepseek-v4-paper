@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: deepseek-v4-paper-preview
+  labels:
+    app.kubernetes.io/name: deepseek-v4-paper
+    app.kubernetes.io/part-of: deepseek-v4-paper
+  annotations:
+    acme.cert-manager.io/http01-edit-in-place: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    cert-manager.io/issue-temporary-certificate: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: deepseek-v4-paper.144.91.77.245.sslip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: deepseek-v4-paper
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - deepseek-v4-paper.144.91.77.245.sslip.io
+      secretName: deepseek-v4-paper-preview-tls

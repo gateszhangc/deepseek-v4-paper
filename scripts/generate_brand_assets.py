@@ -1,165 +1,223 @@
-#!/usr/bin/env python3
-from __future__ import annotations
-
 from pathlib import Path
-
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 
 ROOT = Path(__file__).resolve().parent.parent
-BRAND_DIR = ROOT / "assets" / "brand"
+ASSETS_DIR = ROOT / "assets" / "brand"
+PHILOSOPHY_PATH = ROOT / "brand" / "signal-lattice.md"
 FONT_DIR = ROOT / "assets" / "fonts"
+FALLBACK_FONT_DIR = Path("/Users/a1-6/.codex/skills/canvas-design/canvas-fonts")
 
-TEXT_FONT = FONT_DIR / "Tektur-Medium.ttf"
-BODY_FONT = FONT_DIR / "InstrumentSans-Regular.ttf"
+COLORS = {
+    "ink": "#061018",
+    "panel": "#0a1722",
+    "cyan": "#8BE7D2",
+    "cyan_soft": "#73CDBD",
+    "sand": "#E7D09B",
+    "mist": "#E9F2F0",
+    "line": "#173243",
+    "glow": "#143540",
+}
 
-BG = (7, 10, 20, 255)
-PANEL = (15, 23, 43, 240)
-STROKE = (86, 108, 143, 255)
-ORANGE = (255, 137, 58, 255)
-ICE = (220, 233, 255, 255)
-ASH = (108, 126, 158, 255)
+
+def hex_rgba(value, alpha=255):
+    value = value.lstrip("#")
+    return tuple(int(value[i : i + 2], 16) for i in (0, 2, 4)) + (alpha,)
 
 
-def font(path: Path, size: int) -> ImageFont.FreeTypeFont:
+def font(name, size):
+    path = FONT_DIR / name
+    if not path.exists():
+        path = FALLBACK_FONT_DIR / name
     return ImageFont.truetype(str(path), size=size)
 
 
-def draw_mark(base: Image.Image, with_panel: bool = False) -> None:
-    draw = ImageDraw.Draw(base)
-    width, height = base.size
+def linear_gradient(size, start, end):
+    width, height = size
+    image = Image.new("RGBA", size)
+    draw = ImageDraw.Draw(image)
+    start_rgb = hex_rgba(start)
+    end_rgb = hex_rgba(end)
+    for y in range(height):
+        ratio = y / max(height - 1, 1)
+        color = tuple(int(start_rgb[i] + (end_rgb[i] - start_rgb[i]) * ratio) for i in range(4))
+        draw.line([(0, y), (width, y)], fill=color)
+    return image
 
-    if with_panel:
-        draw.rounded_rectangle(
-            (32, 32, width - 32, height - 32),
-            radius=width // 6,
-            fill=PANEL,
-            outline=(35, 52, 80, 255),
-            width=3,
-        )
 
-    cx, cy = width / 2, height / 2
-    scale = min(width, height)
-    orbit_box = (
-        cx - scale * 0.28,
-        cy - scale * 0.20,
-        cx + scale * 0.28,
-        cy + scale * 0.20,
-    )
-    secondary_box = (
-        cx - scale * 0.17,
-        cy - scale * 0.34,
-        cx + scale * 0.17,
-        cy + scale * 0.34,
-    )
+def draw_grid(draw, size, spacing, color, margin):
+    width, height = size
+    for x in range(margin, width - margin + 1, spacing):
+        draw.line([(x, margin), (x, height - margin)], fill=color, width=1)
+    for y in range(margin, height - margin + 1, spacing):
+        draw.line([(margin, y), (width - margin, y)], fill=color, width=1)
 
-    glow = Image.new("RGBA", base.size, (0, 0, 0, 0))
-    glow_draw = ImageDraw.Draw(glow)
-    glow_draw.ellipse(
-        (cx - scale * 0.08, cy - scale * 0.08, cx + scale * 0.08, cy + scale * 0.08),
-        fill=(255, 137, 58, 220),
-    )
-    glow_draw.arc(orbit_box, start=215, end=15, fill=(255, 137, 58, 180), width=max(4, int(scale * 0.028)))
-    glow = glow.filter(ImageFilter.GaussianBlur(radius=scale * 0.015))
-    base.alpha_composite(glow)
 
-    draw.arc(orbit_box, start=210, end=20, fill=ORANGE, width=max(4, int(scale * 0.025)))
-    draw.arc(secondary_box, start=122, end=325, fill=ICE, width=max(2, int(scale * 0.018)))
+def draw_mark(draw, box, line_color, accent_color, fill_color=None):
+    x0, y0, x1, y1 = box
+    width = x1 - x0
+    height = y1 - y0
+    inset = int(width * 0.12)
+    stroke = max(4, int(width * 0.03))
+    inner_box = (x0 + inset, y0 + inset, x1 - inset, y1 - inset)
 
-    moon_box = (
-        cx - scale * 0.09,
-        cy - scale * 0.09,
-        cx + scale * 0.09,
-        cy + scale * 0.09,
-    )
-    draw.ellipse(moon_box, fill=ICE)
-    draw.ellipse(
-        (
-            moon_box[0] + scale * 0.05,
-            moon_box[1] - scale * 0.008,
-            moon_box[2] + scale * 0.06,
-            moon_box[3] + scale * 0.008,
-        ),
-        fill=BG if not with_panel else PANEL,
-    )
+    if fill_color:
+        draw.rounded_rectangle(box, radius=int(width * 0.18), fill=fill_color)
+    draw.rounded_rectangle(inner_box, radius=int(width * 0.12), outline=line_color, width=stroke)
 
-    capsule = [
-        (cx - scale * 0.03, cy + scale * 0.13),
-        (cx + scale * 0.04, cy + scale * 0.04),
-        (cx + scale * 0.08, cy + scale * 0.08),
-        (cx + scale * 0.01, cy + scale * 0.17),
-    ]
-    draw.polygon(capsule, fill=ASH, outline=ICE)
+    cx = (x0 + x1) / 2
+    cy = (y0 + y1) / 2
+    radius_outer = int(width * 0.23)
+    radius_inner = int(width * 0.14)
+    orbital_box = (cx - radius_outer, cy - radius_outer, cx + radius_outer, cy + radius_outer)
+    draw.arc(orbital_box, start=220, end=28, fill=line_color, width=stroke)
+    draw.arc(orbital_box, start=40, end=180, fill=hex_rgba(COLORS["cyan_soft"]), width=stroke)
+
+    inner_orbit = (cx - radius_inner, cy - radius_inner, cx + radius_inner, cy + radius_inner)
+    draw.arc(inner_orbit, start=10, end=200, fill=line_color, width=max(3, stroke - 2))
+
+    bracket_x = x0 + width * 0.28
+    draw.line([(bracket_x, y0 + height * 0.3), (bracket_x, y0 + height * 0.7)], fill=line_color, width=stroke)
     draw.line(
-        (cx - scale * 0.20, cy + scale * 0.24, cx + scale * 0.22, cy + scale * 0.24),
-        fill=STROKE,
-        width=max(2, int(scale * 0.012)),
+        [(bracket_x, y0 + height * 0.3), (bracket_x + width * 0.12, y0 + height * 0.3)],
+        fill=line_color,
+        width=stroke,
     )
-    draw.ellipse(
-        (cx + scale * 0.23, cy - scale * 0.18, cx + scale * 0.27, cy - scale * 0.14),
-        fill=ORANGE,
+    draw.line(
+        [(bracket_x, y0 + height * 0.7), (bracket_x + width * 0.12, y0 + height * 0.7)],
+        fill=line_color,
+        width=stroke,
     )
 
+    node_r = max(5, int(width * 0.028))
+    nodes = [
+        (cx + width * 0.18, cy - height * 0.18),
+        (cx + width * 0.2, cy + height * 0.18),
+        (cx - width * 0.02, cy - height * 0.24),
+    ]
+    for nx, ny in nodes:
+        draw.ellipse((nx - node_r, ny - node_r, nx + node_r, ny + node_r), fill=accent_color)
 
-def create_mark() -> None:
-    image = Image.new("RGBA", (1024, 1024), (0, 0, 0, 0))
-    draw_mark(image)
-    image.save(BRAND_DIR / "logo-mark.png")
+    core_r = int(width * 0.06)
+    draw.ellipse((cx - core_r, cy - core_r, cx + core_r, cy + core_r), fill=accent_color)
 
 
-def create_wordmark() -> None:
-    image = Image.new("RGBA", (1500, 480), (0, 0, 0, 0))
-    mark = Image.new("RGBA", (420, 420), (0, 0, 0, 0))
-    draw_mark(mark, with_panel=True)
-    image.alpha_composite(mark, (24, 30))
+def add_noise_overlay(base, opacity=18):
+    noise = Image.effect_noise(base.size, 18).convert("L")
+    noise = noise.point(lambda v: opacity if v > 132 else 0)
+    overlay = Image.new("RGBA", base.size, hex_rgba(COLORS["mist"], 0))
+    overlay.putalpha(noise)
+    return Image.alpha_composite(base, overlay)
 
+
+def save_logo_mark():
+    size = (512, 512)
+    image = Image.new("RGBA", size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
-    headline_font = font(TEXT_FONT, 116)
-    meta_font = font(BODY_FONT, 34)
-    draw.text((470, 92), "ORBITAL", font=headline_font, fill=ICE)
-    draw.text((470, 208), "SIGNAL", font=headline_font, fill=ORANGE)
-    draw.text((476, 336), "ARTEMIS II WALLPAPER ARCHIVE", font=meta_font, fill=(154, 173, 202, 255))
-    draw.line((474, 316, 1148, 316), fill=STROKE, width=3)
-    image.save(BRAND_DIR / "logo-wordmark.png")
+    draw_mark(
+        draw,
+        (24, 24, 488, 488),
+        hex_rgba(COLORS["cyan"]),
+        hex_rgba(COLORS["sand"]),
+        fill_color=hex_rgba(COLORS["ink"], 218),
+    )
+    image.save(ASSETS_DIR / "logo-mark.png")
 
 
-def create_favicon() -> None:
-    favicon = Image.new("RGBA", (256, 256), BG)
-    draw_mark(favicon, with_panel=True)
-    favicon.save(BRAND_DIR / "favicon.png")
-    favicon.resize((180, 180), Image.Resampling.LANCZOS).save(BRAND_DIR / "apple-touch-icon.png")
-
-
-def create_social_card() -> None:
-    width, height = 1200, 630
-    image = Image.new("RGBA", (width, height), BG)
+def save_favicon():
+    size = (256, 256)
+    image = linear_gradient(size, COLORS["ink"], COLORS["panel"])
     draw = ImageDraw.Draw(image)
-    draw.rounded_rectangle((36, 36, width - 36, height - 36), radius=40, outline=(29, 47, 76, 255), width=4)
-    draw.ellipse((-140, -180, 420, 380), fill=(18, 29, 55, 255))
-    draw.ellipse((760, 260, 1310, 820), fill=(13, 19, 36, 255))
-    draw.arc((120, 90, 530, 420), start=210, end=8, fill=ORANGE, width=14)
-    draw.arc((160, 60, 460, 480), start=125, end=330, fill=ICE, width=10)
-    draw.ellipse((260, 180, 380, 300), fill=ICE)
-    draw.ellipse((320, 170, 420, 310), fill=BG)
-
-    headline = font(TEXT_FONT, 78)
-    subhead = font(BODY_FONT, 30)
-    micro = font(BODY_FONT, 22)
-    draw.text((580, 150), "ARTEMIS II", font=headline, fill=ICE)
-    draw.text((580, 240), "WALLPAPER", font=headline, fill=ORANGE)
-    draw.text((582, 352), "HD NASA lunar mission backgrounds for desktop and phone", font=subhead, fill=(172, 188, 213, 255))
-    draw.text((582, 430), "Non-official editorial collection with source credit", font=micro, fill=(132, 151, 181, 255))
-    draw.line((582, 405, 1042, 405), fill=STROKE, width=3)
-    image.save(BRAND_DIR / "social-card.png")
+    draw.rounded_rectangle((12, 12, 244, 244), radius=52, outline=hex_rgba(COLORS["line"]), width=2)
+    draw_mark(draw, (30, 30, 226, 226), hex_rgba(COLORS["cyan"]), hex_rgba(COLORS["sand"]), None)
+    image = add_noise_overlay(image)
+    image.save(ASSETS_DIR / "favicon.png")
 
 
-def main() -> None:
-    BRAND_DIR.mkdir(parents=True, exist_ok=True)
-    create_mark()
-    create_wordmark()
-    create_favicon()
-    create_social_card()
-    print(f"Brand assets generated in {BRAND_DIR}")
+def save_apple_touch():
+    size = (180, 180)
+    image = linear_gradient(size, COLORS["ink"], COLORS["panel"])
+    draw = ImageDraw.Draw(image)
+    draw.rounded_rectangle((10, 10, 170, 170), radius=38, outline=hex_rgba(COLORS["line"]), width=2)
+    draw_mark(draw, (22, 22, 158, 158), hex_rgba(COLORS["cyan"]), hex_rgba(COLORS["sand"]), None)
+    image = add_noise_overlay(image, opacity=14)
+    image.save(ASSETS_DIR / "apple-touch-icon.png")
+
+
+def save_wordmark():
+    size = (1500, 480)
+    image = Image.new("RGBA", size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    draw_mark(
+        draw,
+        (24, 48, 360, 384),
+        hex_rgba(COLORS["cyan"]),
+        hex_rgba(COLORS["sand"]),
+        fill_color=hex_rgba(COLORS["ink"], 206),
+    )
+
+    display = font("Tektur-Medium.ttf", 124)
+    support = font("InstrumentSans-Regular.ttf", 46)
+    micro = font("GeistMono-Regular.ttf", 24)
+
+    draw.text((414, 62), "DEEPSEEK V4", font=display, fill=hex_rgba(COLORS["mist"]))
+    draw.text((420, 222), "PAPER", font=support, fill=hex_rgba(COLORS["cyan"]))
+    draw.line((420, 286, 1010, 286), fill=hex_rgba(COLORS["line"]), width=2)
+    draw.text((420, 316), "OFFICIAL REPORT GUIDE / VERIFIED SOURCE INDEX", font=micro, fill=hex_rgba(COLORS["sand"]))
+    image.save(ASSETS_DIR / "logo-wordmark.png")
+
+
+def save_social_card():
+    size = (1200, 630)
+    image = linear_gradient(size, "#07111a", "#0c1f2a")
+    draw = ImageDraw.Draw(image)
+    draw_grid(draw, size, spacing=54, color=hex_rgba(COLORS["line"], 88), margin=54)
+
+    glow = Image.new("RGBA", size, (0, 0, 0, 0))
+    glow_draw = ImageDraw.Draw(glow)
+    glow_draw.ellipse((770, -40, 1280, 470), fill=hex_rgba(COLORS["glow"], 135))
+    glow_draw.ellipse((-180, 260, 320, 760), fill=hex_rgba("#102836", 110))
+    glow = glow.filter(ImageFilter.GaussianBlur(36))
+    image = Image.alpha_composite(image, glow)
+    draw = ImageDraw.Draw(image)
+
+    draw.rounded_rectangle((48, 48, 1152, 582), radius=28, outline=hex_rgba(COLORS["line"], 160), width=2)
+    draw.rounded_rectangle((82, 96, 430, 444), radius=42, outline=hex_rgba(COLORS["cyan"], 200), width=3)
+    draw_mark(draw, (112, 126, 400, 414), hex_rgba(COLORS["cyan"]), hex_rgba(COLORS["sand"]), None)
+
+    eyebrow = font("GeistMono-Regular.ttf", 24)
+    title = font("Tektur-Medium.ttf", 72)
+    subtitle = font("InstrumentSerif-Regular.ttf", 34)
+    body = font("InstrumentSans-Regular.ttf", 26)
+
+    draw.text((470, 112), "INDEPENDENT REPORT GUIDE", font=eyebrow, fill=hex_rgba(COLORS["sand"]))
+    draw.text((470, 160), "DeepSeek V4 Paper", font=title, fill=hex_rgba(COLORS["mist"]))
+    draw.text((472, 254), "Toward highly efficient million-token context intelligence.", font=subtitle, fill=hex_rgba(COLORS["cyan"]))
+
+    bullets = [
+        "1M token context window across Pro and Flash",
+        "Official architecture notes: CSA + HCA, mHC, Muon",
+        "Benchmark snapshot, resources, and FAQ in one page",
+    ]
+    y = 340
+    for bullet in bullets:
+        draw.ellipse((472, y + 9, 484, y + 21), fill=hex_rgba(COLORS["sand"]))
+        draw.text((504, y), bullet, font=body, fill=hex_rgba(COLORS["mist"], 230))
+        y += 62
+
+    draw.text((82, 536), PHILOSOPHY_PATH.stem.replace("-", " ").upper(), font=eyebrow, fill=hex_rgba(COLORS["cyan"], 210))
+    draw.text((842, 536), "deepseekv4paper.lol", font=eyebrow, fill=hex_rgba(COLORS["sand"], 210))
+    image = add_noise_overlay(image, opacity=12)
+    image.save(ASSETS_DIR / "social-card.png")
+
+
+def main():
+    ASSETS_DIR.mkdir(parents=True, exist_ok=True)
+    save_logo_mark()
+    save_favicon()
+    save_apple_touch()
+    save_wordmark()
+    save_social_card()
 
 
 if __name__ == "__main__":

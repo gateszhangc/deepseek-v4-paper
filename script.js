@@ -1,41 +1,37 @@
-const topbar = document.querySelector("[data-topbar]");
-const filterButtons = Array.from(document.querySelectorAll(".filter-button"));
-const wallpaperCards = Array.from(document.querySelectorAll(".wallpaper-card"));
-const resultsCount = document.querySelector("[data-results-count]");
-const yearNode = document.querySelector("#current-year");
+const links = [...document.querySelectorAll("[data-nav-link]")];
+const sections = links
+  .map((link) => {
+    const id = link.getAttribute("href");
+    return id ? document.querySelector(id) : null;
+  })
+  .filter(Boolean);
 
-const updateResults = (filter) => {
-  let visible = 0;
-
-  wallpaperCards.forEach((card) => {
-    const tags = (card.dataset.tags || "").split(" ");
-    const matches = filter === "all" || tags.includes(filter);
-    card.hidden = !matches;
-    if (matches) visible += 1;
+const setActiveLink = (id) => {
+  links.forEach((link) => {
+    const isActive = link.getAttribute("href") === `#${id}`;
+    link.toggleAttribute("data-active", isActive);
   });
+};
 
-  if (resultsCount) {
-    resultsCount.textContent = `Showing ${visible} wallpaper${visible === 1 ? "" : "s"}`;
+const observer = new IntersectionObserver(
+  (entries) => {
+    const visible = entries
+      .filter((entry) => entry.isIntersecting)
+      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+    if (visible?.target?.id) {
+      setActiveLink(visible.target.id);
+    }
+  },
+  {
+    rootMargin: "-20% 0px -60% 0px",
+    threshold: [0.2, 0.45, 0.7]
   }
-};
+);
 
-filterButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    filterButtons.forEach((entry) => entry.classList.remove("is-active"));
-    button.classList.add("is-active");
-    updateResults(button.dataset.filter || "all");
-  });
-});
+sections.forEach((section) => observer.observe(section));
 
-if (yearNode) {
-  yearNode.textContent = new Date().getFullYear();
+const stamp = document.querySelector("[data-verified-date]");
+if (stamp) {
+  stamp.textContent = "Last reviewed against the public DeepSeek-V4 model card on April 24, 2026.";
 }
-
-const handleScroll = () => {
-  if (!topbar) return;
-  topbar.classList.toggle("is-scrolled", window.scrollY > 12);
-};
-
-window.addEventListener("scroll", handleScroll, { passive: true });
-handleScroll();
-updateResults("all");

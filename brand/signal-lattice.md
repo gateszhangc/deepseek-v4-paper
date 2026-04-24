@@ -1,0 +1,11 @@
+# Signal Lattice
+
+Signal Lattice treats intelligence as an artifact of disciplined observation rather than spectacle. Space is organized like a research instrument: measured intervals, quiet boundaries, and forms that imply calibration before they imply decoration. The visual field should feel constructed by someone who values rigor over noise, with every line placed through painstaking attention and master-level restraint. Nothing is casual; every margin, every interval, every alignment must read as meticulously crafted.
+
+Color works as a system of evidence. The base tone is abyssal and mineral, closer to engineered material than theatrical darkness, while luminous cyan acts as the carrier of signal and a restrained metallic gold marks emphasis or anomaly. Contrast should feel deliberate, not loud. Surfaces must suggest layers of analysis and countless hours of refinement, as if the composition were reviewed, adjusted, and polished by a top-tier art director until every transition felt inevitable.
+
+Scale and rhythm are driven by compression and release. Dense clusters of marks can exist, but only where they intensify meaning; elsewhere, negative space should create the confidence of a laboratory table cleared for a critical measurement. Repetition should hint at indexing, citation, and model architecture without becoming literal diagrams. The viewer should sense patient craft everywhere, the product of deep expertise rather than automated abundance.
+
+Typography is sparse and instrumental. Words behave like labels on a prototype, small proofs of confidence rather than paragraphs asking for attention. When larger type appears, it should feel engraved into the composition, not simply placed on top of it. The relationship between typographic mass and empty space must show painstaking calibration, with the final work appearing labored over by someone at the absolute top of their field.
+
+Composition seeks poised asymmetry: stable enough to suggest trust, tense enough to suggest active research. Curves, brackets, grids, and orbital traces may appear, but they should be reduced to their most exact and elegant forms. The finished artifacts must look museum-grade and technically fluent, carrying the impression of countless deliberate decisions and master-level execution without ever needing to announce that effort in words.

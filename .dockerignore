@@ -4,7 +4,8 @@ node_modules
 playwright-report
 test-results
 tasks
-brand
-scripts
 tests
+brand
+docs
+scripts
 npm-debug.log*

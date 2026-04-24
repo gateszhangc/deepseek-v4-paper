@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: deepseek-v4-paper-live
+  labels:
+    app.kubernetes.io/name: deepseek-v4-paper
+    app.kubernetes.io/part-of: deepseek-v4-paper
+  annotations:
+    acme.cert-manager.io/http01-edit-in-place: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: deepseekv4paper.lol
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: deepseek-v4-paper
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - deepseekv4paper.lol
+      secretName: deepseek-v4-paper-live-tls
