@@ -11,7 +11,7 @@ spec:
   secretName: deepseek-v4-paper-live-tls
   issuerRef:
     kind: ClusterIssuer
-    name: letsencrypt-prod
+    name: letsencrypt-prod-cloudflare
   dnsNames:
     - deepseekv4paper.lol
     - www.deepseekv4paper.lol
