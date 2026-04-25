@@ -18,7 +18,9 @@ test.describe("DeepSeek V4 Paper site", () => {
     await expect(page.locator("[data-verified-date]")).toContainText("April 24, 2026");
 
     const reportLink = page.getByRole("link", { name: "Open Technical Report" });
-    await expect(reportLink).toHaveAttribute("href", /DeepSeek_V4\.pdf/);
+    await expect(reportLink).toHaveAttribute("href", "https://mirofish.my/");
+    await expect(reportLink).toHaveAttribute("target", "_blank");
+    await expect(reportLink).toHaveAttribute("rel", "noreferrer noopener");
 
     const officialLinksButton = page.getByRole("link", { name: "Browse Official Links" });
     await expect(officialLinksButton).toHaveAttribute("href", "https://mirofish.my/");
