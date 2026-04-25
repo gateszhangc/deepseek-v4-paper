@@ -20,8 +20,10 @@ test.describe("DeepSeek V4 Paper site", () => {
     const reportLink = page.getByRole("link", { name: "Open Technical Report" });
     await expect(reportLink).toHaveAttribute("href", /DeepSeek_V4\.pdf/);
 
-    await page.getByRole("link", { name: "Browse Official Links" }).click();
-    await expect(page.locator("#resources")).toBeInViewport();
+    const officialLinksButton = page.getByRole("link", { name: "Browse Official Links" });
+    await expect(officialLinksButton).toHaveAttribute("href", "https://mirofish.my/");
+    await expect(officialLinksButton).toHaveAttribute("target", "_blank");
+    await expect(officialLinksButton).toHaveAttribute("rel", "noreferrer noopener");
 
     for (const image of await page.locator("img").all()) {
       await image.scrollIntoViewIfNeeded();
